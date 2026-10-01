@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ER Bed Tracker Weekday</title>
+<style>
+:root{--bg:rgba(252,252,249,1);--card:rgba(255,255,253,1);--ink:rgba(19,52,59,1);--teal:rgba(33,128,141,1);--line:rgba(94,82,64,.2)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:20px;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1100px;margin:auto}h1{font-size:32px}
+.los{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;background:var(--card);padding:16px;border:1px solid var(--line);border-radius:8px}
+label{font-weight:600;display:block;margin-bottom:6px}input{padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+table{width:100%;border-collapse:collapse;background:var(--card);margin-top:16px}th,td{padding:8px;border:1px solid var(--line);text-align:center}
+.low{background:#22c55e;color:#fff}.med{background:#eab308;color:#fff}.high{background:#f97316;color:#fff}.crit{background:#ef4444;color:#fff}
+.metric{font-size:24px;font-weight:600;color:var(--teal)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="wrap">
+<h1>ER Bed Tracker Weekday</h1>
+<div class="los">
+<label>Admitted LOS (minutes)<input id="admittedLOS" type="number" value="498" min="0"></label>
+<label>Discharge LOS (minutes)<input id="dischargeLOS" type="number" value="284" min="0"></label>
+</div>
+<div id="metrics"></div>
+<canvas id="chart"></canvas>
+<table><thead><tr><th>Hour</th><th>Beds</th><th>Arrivals</th><th>Admits</th><th>Discharges</th><th>Beds needed</th><th>Deficit</th></tr></thead><tbody id="rows"></tbody></table>
+</div>
+<script>
+const state={beds:[30,30,30,30,30,30,30,30,30,42,42,42,42,52,52,52,52,52,52,52,52,42,42,42],arrivals:[5,4,4,3,3,3,4,6,8,11,12,13,13,12,11,11,11,11,9,10,9,8,7,6],admits:[1,1,1,1,1,1,1,2,2,3,4,5,5,4,4,4,4,4,3,3,3,2,2,2],discharges:[4,3,3,2,2,2,3,4,6,8,8,8,8,8,7,7,7,7,6,7,6,6,5,4]};
+function frac(lag,los){if(los<=0)return 0;lag*=60;let s=0;for(let u=0;u<60;u++)s+=Math.max(0,Math.min(u+los,lag+60)-Math.max(u,lag));return s/3600}
+function need(h,a,d){let o=0;for(let i=0;i<24;i++){const lag=(h-i+24)%24;o+=state.admits[i]*frac(lag,a)+state.discharges[i]*frac(lag,d)}return o}
+function calc(){const a=+admittedLOS.value||0,d=+dischargeLOS.value||0,rows=[];for(let h=0;h<24;h++){const o=Math.round(need(h,a,d)),bed=state.beds[h],def=Math.max(0,o-bed);rows.push({h,bed,o,def,arr:state.arrivals[h],adm:state.admits[h],dis:state.discharges[h]})}rowsEl.innerHTML=rows.map(r=>'<tr class="'+(r.def===0?'low':r.def<=5?'med':r.def<=10?'high':'crit')+'"><td>'+String(r.h).padStart(2,'0')+':00</td><td>'+r.bed+'</td><td>'+r.arr+'</td><td>'+r.adm+'</td><td>'+r.dis+'</td><td>'+r.o+'</td><td>'+r.def+'</td></tr>').join('');metrics.innerHTML='<div class="metric">'+Math.max(...rows.map(r=>r.def))+'</div>Peak bed deficit';if(window.chart)window.chart.destroy();window.chart=new Chart(chart,{type:'line',data:{labels:rows.map(r=>String(r.h).padStart(2,'0')+':00'),datasets:[{label:'Beds needed',data:rows.map(r=>r.o),borderColor:'#ef4444'},{label:'Beds open',data:rows.map(r=>r.bed),borderColor:'#06b6d4'}]},options:{responsive:true}})}
+calc();admittedLOS.oninput=dischargeLOS.oninput=calc;
+</script>
+</body>
+</html>
