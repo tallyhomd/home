@@ -18,7 +18,6 @@
             --color-text: var(--color-slate-900);
             --color-primary: var(--color-teal-500);
         }
-
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--color-background); color: var(--color-text); }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -43,10 +42,10 @@
     <div class="container">
         <h1>ER Bed Tracker Sep25 Aug 26</h1>
         <div class="los-config">
-            <label>Admitted LOS (minutes)<input type="number" id="admittedLOS" value="492" min="0"></label>
-            <label>Discharge LOS (minutes)<input type="number" id="dischargeLOS" value="282" min="0"></label>
+            <label>Admitted LOS (minutes)<input id="admittedLOS" type="number" value="368" min="0"></label>
+            <label>Discharge LOS (minutes)<input id="dischargeLOS" type="number" value="262" min="0"></label>
         </div>
-        <p>Original cream and teal format. Census uses admits for admitted LOS and discharges for discharge LOS.</p>
+        <p>Census uses admits for admitted LOS and discharges for discharge LOS.</p>
         <div id="metrics"></div>
         <canvas id="capacityChart"></canvas>
         <div id="heatmap"></div>
