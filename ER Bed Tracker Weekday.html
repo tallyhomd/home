@@ -1,28 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ER Bed Tracker Weekday</title>
-    <style>
-        :root { --color-cream-50: rgba(252, 252, 249, 1); --color-cream-100: rgba(255, 255, 253, 1); --color-slate-900: rgba(19, 52, 59, 1); --color-teal-500: rgba(33, 128, 141, 1); --color-teal-600: rgba(29, 116, 128, 1); --color-brown-600-rgb: 94, 82, 64; --color-background: var(--color-cream-50); --color-surface: var(--color-cream-100); --color-text: var(--color-slate-900); --color-primary: var(--color-teal-500); }
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--color-background); color: var(--color-text); }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { font-size: 32px; margin-bottom: 30px; }
-        .los-config, .table-section, .metric-card { background: var(--color-surface); border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); border-radius: 8px; }
-        .los-config { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; padding: 20px; }
-        label { font-weight: 600; margin-bottom: 8px; font-size: 14px; display: block; }
-        input, select { padding: 10px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); border-radius: 6px; background: var(--color-background); color: var(--color-text); }
-        .tables-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .table-section { padding: 15px; }
-        table { width: 100%; border-collapse: collapse; background: var(--color-surface); }
-        th, td { padding: 8px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.15); }
-        .metric-value { font-size: 24px; font-weight: 600; color: var(--color-primary); }
-        .heat-low { background: #22c55e; color: white; } .heat-med { background: #eab308; color: white; } .heat-high { background: #f97316; color: white; } .heat-critical { background: #ef4444; color: white; }
-        .btn { padding: 10px 20px; background: var(--color-primary); color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Bed Tracker Weekday</title>
+<style>
+:root{--color-cream-50:rgba(252,252,249,1);--color-cream-100:rgba(255,255,253,1);--color-slate-900:rgba(19,52,59,1);--color-teal-500:rgba(33,128,141,1);--color-brown-600-rgb:94,82,64;--color-background:var(--color-cream-50);--color-surface:var(--color-cream-100);--color-text:var(--color-slate-900);--color-primary:var(--color-teal-500)}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:20px;background:var(--color-background);color:var(--color-text)}.container{max-width:1200px;margin:0 auto}h1{font-size:32px;margin-bottom:30px}.los-config,.table-section,.metric-card{background:var(--color-surface);border:1px solid rgba(var(--color-brown-600-rgb),.2);border-radius:8px}.los-config{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px;padding:20px}label{font-weight:600;margin-bottom:8px;font-size:14px;display:block}input,select{padding:10px;border:1px solid rgba(var(--color-brown-600-rgb),.2);border-radius:6px;background:var(--color-background);color:var(--color-text)}.tables-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}.table-section{padding:15px}table{width:100%;border-collapse:collapse;background:var(--color-surface)}th,td{padding:8px;border:1px solid rgba(var(--color-brown-600-rgb),.15)}.metric-value{font-size:24px;font-weight:600;color:var(--color-primary)}.heatmap{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}.heatmap-cell{min-height:72px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;color:#fff}.heat-low{background:#22c55e;color:#fff}.heat-med{background:#eab308;color:#fff}.heat-high{background:#f97316;color:#fff}.heat-critical{background:#ef4444;color:#fff}.legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0;padding:12px;background:var(--color-surface);border:1px solid rgba(var(--color-brown-600-rgb),.2);border-radius:8px}.swatch{width:28px;height:14px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:middle}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container">
@@ -39,42 +25,20 @@
 <h3>Capacity Visualization</h3><canvas id="capacityChart"></canvas>
 <h3>Occupancy Heat Map</h3>
 <select id="heatmapMetric"><option value="deficit">Bed Deficit/Availability</option><option value="occupancy">Total Occupancy</option><option value="percentage">Occupancy %</option></select>
-<div id="heatmap" style="margin-top:12px"></div>
+<div class="legend"><span><i class="swatch heat-low"></i>No deficit / under 60%</span><span><i class="swatch heat-med"></i>Deficit 1-5 / 60-80%</span><span><i class="swatch heat-high"></i>Deficit 6-10 / 80-100%</span><span><i class="swatch heat-critical"></i>Deficit over 10 / over 100%</span></div>
+<div id="heatmap" class="heatmap"></div>
 <h3>Hourly Results</h3>
 <table><thead><tr><th>Hour</th><th>Beds Available</th><th>Occupancy</th><th>Occupancy %</th><th>Bed Deficit</th></tr></thead><tbody id="resultsTable"></tbody></table>
 </div>
 <script>
-const state = {beds:[30,30,30,30,30,30,30,30,30,42,42,42,42,52,52,52,52,52,52,52,52,42,42,42], arrivals:[5,4,4,3,3,3,4,6,8,11,12,13,13,12,11,11,11,11,9,10,9,8,7,6], admits:[1,1,1,1,1,1,1,2,2,3,4,5,5,4,4,4,4,4,3,3,3,2,2,2], discharges:[4,3,3,2,2,2,3,4,6,8,8,8,8,8,7,7,7,7,6,7,6,6,5,4]};
-let chart;
-const z=n=>String(n).padStart(2,'0');
-function stayFraction(lagHours, los){ if(los<=0) return 0; const lag=lagHours*60; let sum=0; for(let u=0;u<60;u++) sum+=Math.max(0, Math.min(u+los, lag+60)-Math.max(u, lag)); return sum/3600; }
-function bedsNeeded(hour, admittedLOS, dischargeLOS){ let occupancy=0; for(let arrived=0; arrived<24; arrived++){ const lag=(hour-arrived+24)%24; occupancy += state.admits[arrived]*stayFraction(lag, admittedLOS); occupancy += state.discharges[arrived]*stayFraction(lag, dischargeLOS); } return occupancy; }
-function field(type, hour){ return `<input type="number" min="0" data-type="${type}" data-hour="${hour}" value="${state[type][hour]}" style="width:70px">`; }
-function init(){
- document.getElementById('bedsTable').innerHTML=state.beds.map((_,h)=>`<tr><td>${z(h)}:00</td><td>${field('beds',h)}</td></tr>`).join('');
- document.getElementById('patientTable').innerHTML=state.arrivals.map((_,h)=>`<tr><td>${z(h)}:00</td><td>${field('arrivals',h)}</td><td>${field('admits',h)}</td><td>${field('discharges',h)}</td></tr>`).join('');
- document.querySelectorAll('input[data-type]').forEach(el=>el.addEventListener('input', e=>{ state[e.target.dataset.type][+e.target.dataset.hour]=parseInt(e.target.value)||0; calculate(); }));
- document.getElementById('admittedLOS').oninput=calculate;
- document.getElementById('dischargeLOS').oninput=calculate;
- document.getElementById('heatmapMetric').onchange=calculate;
- calculate();
-}
-function calculate(){
- const admittedLOS=parseInt(document.getElementById('admittedLOS').value)||0;
- const dischargeLOS=parseInt(document.getElementById('dischargeLOS').value)||0;
- const rows=[];
- for(let h=0;h<24;h++){
-  const occupancy=bedsNeeded(h, admittedLOS, dischargeLOS);
-  const available=state.beds[h];
-  rows.push({hour:h, available, occupancy:Math.round(occupancy), percentage:available?Math.round(occupancy/available*100):0, deficit:Math.max(0, Math.round(occupancy-available))});
- }
- document.getElementById('metrics').innerHTML=`<div class="metric-card"><div class="metric-value">${Math.max(...rows.map(r=>r.deficit))}</div>Peak bed deficit</div>`;
- document.getElementById('resultsTable').innerHTML=rows.map(r=>`<tr><td>${z(r.hour)}:00</td><td>${r.available}</td><td>${r.occupancy}</td><td>${r.percentage}%</td><td>${r.deficit}</td></tr>`).join('');
- const metric=document.getElementById('heatmapMetric').value;
- document.getElementById('heatmap').innerHTML=rows.map(r=>{ const value=metric==='deficit'?r.deficit:metric==='occupancy'?r.occupancy:r.percentage; const score=metric==='deficit'?r.deficit:r.percentage; const cls=score===0||score<60?'heat-low':score<80?'heat-med':score<100?'heat-high':'heat-critical'; return `<div class="${cls}" style="display:inline-flex;width:70px;height:70px;margin:4px;border-radius:4px;align-items:center;justify-content:center;flex-direction:column">${z(r.hour)}<br>${value}</div>`; }).join('');
- if(chart) chart.destroy();
- chart=new Chart(document.getElementById('capacityChart'), {type:'line', data:{labels:rows.map(r=>z(r.hour)+':00'), datasets:[{label:'Total Occupancy', data:rows.map(r=>r.occupancy), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.15)', fill:true},{label:'Bed Capacity', data:rows.map(r=>r.available), borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,.15)', fill:true}]}, options:{responsive:true, scales:{y:{beginAtZero:true}}}});
-}
+const state={beds:[30,30,30,30,30,30,30,30,30,42,42,42,42,52,52,52,52,52,52,52,52,42,42,42],arrivals:[5,4,4,3,3,3,4,6,8,11,12,13,13,12,11,11,11,11,9,10,9,8,7,6],admits:[1,1,1,1,1,1,1,2,2,3,4,5,5,4,4,4,4,4,3,3,3,2,2,2],discharges:[4,3,3,2,2,2,3,4,6,8,8,8,8,8,7,7,7,7,6,7,6,6,5,4]};
+let chart;const z=n=>String(n).padStart(2,'0');
+function stayFraction(lagHours,los){if(los<=0)return 0;const lag=lagHours*60;let sum=0;for(let u=0;u<60;u++)sum+=Math.max(0,Math.min(u+los,lag+60)-Math.max(u,lag));return sum/3600}
+function bedsNeeded(hour,admittedLOS,dischargeLOS){let occupancy=0;for(let arrived=0;arrived<24;arrived++){const lag=(hour-arrived+24)%24;occupancy+=state.admits[arrived]*stayFraction(lag,admittedLOS);occupancy+=state.discharges[arrived]*stayFraction(lag,dischargeLOS)}return occupancy}
+function colorClass(metric,row){if(metric==='deficit'){const v=row.deficit;return v===0?'heat-low':v<=5?'heat-med':v<=10?'heat-high':'heat-critical'}const pct=row.percentage;return pct<60?'heat-low':pct<80?'heat-med':pct<=100?'heat-high':'heat-critical'}
+function field(type,hour){return `<input type="number" min="0" data-type="${type}" data-hour="${hour}" value="${state[type][hour]}" style="width:70px">`}
+function init(){document.getElementById('bedsTable').innerHTML=state.beds.map((_,h)=>`<tr><td>${z(h)}:00</td><td>${field('beds',h)}</td></tr>`).join('');document.getElementById('patientTable').innerHTML=state.arrivals.map((_,h)=>`<tr><td>${z(h)}:00</td><td>${field('arrivals',h)}</td><td>${field('admits',h)}</td><td>${field('discharges',h)}</td></tr>`).join('');document.querySelectorAll('input[data-type]').forEach(el=>el.addEventListener('input',e=>{state[e.target.dataset.type][+e.target.dataset.hour]=parseInt(e.target.value)||0;calculate()}));document.getElementById('admittedLOS').oninput=calculate;document.getElementById('dischargeLOS').oninput=calculate;document.getElementById('heatmapMetric').onchange=calculate;calculate()}
+function calculate(){const admittedLOS=parseInt(document.getElementById('admittedLOS').value)||0;const dischargeLOS=parseInt(document.getElementById('dischargeLOS').value)||0;const rows=[];for(let h=0;h<24;h++){const occupancy=bedsNeeded(h,admittedLOS,dischargeLOS);const available=state.beds[h];rows.push({hour:h,available,occupancy:Math.round(occupancy),percentage:available?Math.round(occupancy/available*100):0,deficit:Math.max(0,Math.round(occupancy-available))})}const metric=document.getElementById('heatmapMetric').value;document.getElementById('metrics').innerHTML=`<div class="metric-card"><div class="metric-value">${Math.max(...rows.map(r=>r.deficit))}</div>Peak bed deficit</div>`;document.getElementById('resultsTable').innerHTML=rows.map(r=>`<tr><td>${z(r.hour)}:00</td><td>${r.available}</td><td>${r.occupancy}</td><td>${r.percentage}%</td><td class="${colorClass('deficit',r)}">${r.deficit}</td></tr>`).join('');document.getElementById('heatmap').innerHTML=rows.map(r=>{const value=metric==='deficit'?r.deficit:metric==='occupancy'?r.occupancy:r.percentage;return `<div class="heatmap-cell ${colorClass(metric,r)}"><span>${z(r.hour)}:00</span><strong>${value}</strong></div>`}).join('');if(chart)chart.destroy();chart=new Chart(document.getElementById('capacityChart'),{type:'line',data:{labels:rows.map(r=>z(r.hour)+':00'),datasets:[{label:'Total Occupancy',data:rows.map(r=>r.occupancy),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.15)',fill:true},{label:'Bed Capacity',data:rows.map(r=>r.available),borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,.15)',fill:true}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}})}
 init();
 </script>
 </body>
