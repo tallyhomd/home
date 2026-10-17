@@ -1,190 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ER Bed Tracker Weekday</title>
-    <style>
-        :root {
-            --color-cream-50: rgba(252, 252, 249, 1);
-            --color-cream-100: rgba(255, 255, 253, 1);
-            --color-slate-900: rgba(19, 52, 59, 1);
-            --color-slate-500: rgba(174, 184, 186, 1);
-            --color-teal-500: rgba(33, 128, 141, 1);
-            --color-teal-600: rgba(29, 116, 128, 1);
-            --color-brown-600-rgb: 94, 82, 64;
-            --color-background: rgba(31, 33, 33, 1);
-            --color-surface: rgba(38, 40, 40, 1);
-            --color-text: rgba(245, 245, 245, 1);
-            --color-primary: var(--color-teal-500);
-        }
-
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--color-background); color: var(--color-text); }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { font-size: 32px; margin-bottom: 30px; }
-        h3 { font-size: 18px; margin-top: 30px; margin-bottom: 15px; }
-        .los-config { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; background: var(--color-surface); padding: 20px; border-radius: 8px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); }
-        .input-group { display: flex; flex-direction: column; }
-        label { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-        input[type="number"], select { padding: 10px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); border-radius: 6px; font-size: 14px; background: var(--color-background); color: var(--color-text); }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: var(--color-surface); }
-        th { background-color: rgba(var(--color-brown-600-rgb), 0.05); padding: 12px; text-align: left; font-weight: 600; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); }
-        td { padding: 10px 12px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.1); }
-        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .metric-card { background: var(--color-surface); padding: 15px; border-radius: 8px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); }
-        .metric-value { font-size: 24px; font-weight: 600; color: var(--color-primary); }
-        .metric-label { font-size: 12px; color: var(--color-slate-500); margin-top: 5px; }
-        .heatmap { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-bottom: 20px; }
-        .heatmap-cell { aspect-ratio: 1; min-height: 80px; max-height: 120px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: white; }
-        .heat-low { background: #22c55e; } .heat-med { background: #eab308; } .heat-high { background: #f97316; } .heat-critical { background: #ef4444; }
-        .btn { padding: 10px 20px; background: var(--color-primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 10px; }
-        .tables-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .table-section { background: var(--color-surface); padding: 15px; border-radius: 8px; border: 1px solid rgba(var(--color-brown-600-rgb), 0.2); }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Bed Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root { --bg:#1f2121; --surface:#262828; --text:#f5f5f5; --muted:#aeb8ba; --line:rgba(94,82,64,.35); --teal:#21808d; }
+* { box-sizing:border-box; }
+body { margin:0; padding:20px 20px 48px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.wrap { max-width:1100px; margin:0 auto; }
+h1 { font-size:28px; margin:0 0 16px; font-weight:600; }
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+input[type="number"], select { padding:8px; border-radius:6px; border:1px solid var(--line); background:var(--bg); color:var(--text); }
+input[type="number"] { width:100%; }
+.row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+.btn { border:1px solid var(--line); background:#1b1d1d; color:var(--text); border-radius:6px; padding:8px 12px; cursor:pointer; }
+.btn.primary { background:var(--teal); border-color:var(--teal); color:#fff; }
+.metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:16px; }
+.metric { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; }
+.metric b { display:block; font-size:22px; color:var(--teal); margin-top:4px; }
+.metric span { color:var(--muted); font-size:12px; }
+.chart-box { height:360px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:16px; }
+.heat { display:grid; gap:6px; margin:8px 0 16px; }
+.cell { min-height:74px; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+.g { background:#22c55e; } .y { background:#eab308; color:#1f2121; } .o { background:#f97316; } .r { background:#ef4444; }
+.scroll { overflow:auto; max-height:640px; border-radius:8px; }
+table { width:100%; border-collapse:collapse; background:var(--surface); }
+th, td { border:1px solid var(--line); padding:7px 8px; text-align:right; font-size:13px; }
+th { background:#202424; position:sticky; top:0; }
+td:first-child, th:first-child { text-align:left; }
+input.hour { width:70px; padding:4px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:4px; }
+.neg { color:#86efac; } .pos { color:#fca5a5; }
+footer { position:fixed; left:0; right:0; bottom:0; padding:8px 16px; text-align:center; font-size:12px; color:var(--muted); background:var(--bg); border-top:1px solid var(--line); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>ER Bed Tracker Weekday</h1>
-        <div class="los-config">
-            <div class="input-group"><label for="admittedLOS">Admitted LOS (minutes)</label><input type="number" id="admittedLOS" value="374" min="0"></div>
-            <div class="input-group"><label for="dischargeLOS">Discharge LOS (minutes)</label><input type="number" id="dischargeLOS" value="265" min="0"></div>
-        </div>
-        <div class="tables-grid">
-            <div class="table-section"><h4>Beds Available by Hour</h4><div style="overflow:auto;max-height:400px"><table><thead><tr><th>Hour</th><th>Beds</th></tr></thead><tbody id="bedsTable"></tbody></table></div></div>
-            <div class="table-section"><h4>Hourly Statistics</h4><p style="margin:0 0 12px;font-size:13px;color:var(--color-slate-500);">Arrivals are weekday medians from Sep 2025-Aug 2026. Occupancy uses Admits and Discharges only.</p><div style="overflow:auto;max-height:400px"><table><thead><tr><th>Hour</th><th title="Weekday median arrivals, Sep 2025-Aug 2026, excluding Never Arrived">Arrivals</th><th title="Admit, Observation Status, and ED Observation">Admits</th><th title="Discharge only">Discharges</th></tr></thead><tbody id="patientTable"></tbody></table></div></div>
-        </div>
-        <div id="metrics" class="metrics"></div>
-        <h3>Capacity Visualization</h3>
-        <div style="height:400px;margin-bottom:30px;padding:20px;"><canvas id="capacityChart"></canvas></div>
-        <h3>Occupancy Heat Map</h3>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-            <select id="heatmapMetric"><option value="deficit">Bed Deficit/Availability</option><option value="occupancy">Total Occupancy</option><option value="percentage">Occupancy %</option></select>
-            <select id="gridLayout"><option value="2x12">Grid View 2x12 (Compact)</option><option value="3x8">Grid View 3x8</option><option value="4x6" selected>Grid View 4x6</option><option value="6x4">Grid View 6x4</option></select>
-        </div>
-        <div id="heatmap" style="margin-top:20px;"></div>
-        <h3>Hourly Results</h3>
-        <table><thead><tr><th>Hour</th><th>Beds Available</th><th>Occupancy</th><th>Occupancy %</th><th>Bed Deficit</th></tr></thead><tbody id="resultsTable"></tbody></table>
-        <button class="btn" onclick="exportExcel()">Export to Excel</button>
-        <button class="btn" onclick="exportCSV()">Export CSV</button>
+<div class="wrap">
+  <h1>ER Bed Tracker</h1>
+  <div class="panel">
+    <div class="grid">
+      <div><label for="admitLos">Admit LOS (minutes)</label><input id="admitLos" type="number" value="498" min="0"></div>
+      <div><label for="dcLos">Discharge LOS (minutes)</label><input id="dcLos" type="number" value="284" min="0"></div>
     </div>
-    <script>
-        const state = {
-            beds: [32, 32, 32, 32, 32, 32, 32, 32, 32, 44, 44, 44, 44, 54, 54, 54, 54, 54, 54, 54, 54, 44, 44, 44],
-            arrivals: [6, 5, 4, 3, 3, 3, 4, 6, 8, 12, 14, 14, 13, 13, 13, 13, 12, 12, 11, 11, 10, 9, 8, 6],
-            admits: [1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2],
-            discharges: [4, 3, 3, 2, 2, 2, 3, 4, 6, 8, 8, 8, 8, 8, 7, 7, 7, 7, 6, 7, 6, 6, 5, 4]
-        };
-        function stayFraction(lagHours, losMinutes) {
-            if (losMinutes <= 0) return 0;
-            const lag = lagHours * 60;
-            let covered = 0;
-            for (let minute = 0; minute < 60; minute++) covered += Math.max(0, Math.min(minute + losMinutes, lag + 60) - Math.max(minute, lag));
-            return covered / 3600;
-        }
-        function bedsNeeded(hour, admittedLOS, dischargeLOS) {
-            let total = 0;
-            for (let arrived = 0; arrived < 24; arrived++) {
-                const lag = (hour - arrived + 24) % 24;
-                total += state.admits[arrived] * stayFraction(lag, admittedLOS);
-                total += state.discharges[arrived] * stayFraction(lag, dischargeLOS);
-            }
-            return total;
-        }
-        function initializeTables() {
-            const bedsTable = document.getElementById('bedsTable');
-            const patientTable = document.getElementById('patientTable');
-            for (let hour = 0; hour < 24; hour++) {
-                const bedRow = document.createElement('tr');
-                bedRow.innerHTML = `<td>${hour.toString().padStart(2, '0')}:00</td><td><input type="number" data-type="beds" data-hour="${hour}" value="${state.beds[hour]}" min="0" style="width:70px;"></td>`;
-                bedsTable.appendChild(bedRow);
-                const patientRow = document.createElement('tr');
-                patientRow.innerHTML = `<td>${hour.toString().padStart(2, '0')}:00</td><td><input type="number" data-type="arrivals" data-hour="${hour}" value="${state.arrivals[hour]}" min="0" style="width:60px;"></td><td><input type="number" data-type="admits" data-hour="${hour}" value="${state.admits[hour]}" min="0" style="width:60px;"></td><td><input type="number" data-type="discharges" data-hour="${hour}" value="${state.discharges[hour]}" min="0" style="width:60px;"></td>`;
-                patientTable.appendChild(patientRow);
-            }
-            document.querySelectorAll('input[data-type]').forEach(input => input.addEventListener('input', handleInput));
-            document.getElementById('admittedLOS').addEventListener('input', calculate);
-            document.getElementById('dischargeLOS').addEventListener('input', calculate);
-            document.getElementById('heatmapMetric').addEventListener('change', calculate);
-            document.getElementById('gridLayout').addEventListener('change', calculate);
-        }
-        function handleInput(e) { const { type, hour } = e.target.dataset; state[type][hour] = parseInt(e.target.value) || 0; calculate(); }
-        function calculate() {
-            const admittedLOS = parseInt(document.getElementById('admittedLOS').value) || 0;
-            const dischargeLOS = parseInt(document.getElementById('dischargeLOS').value) || 0;
-            const results = [];
-            for (let h = 0; h < 24; h++) {
-                const occupancy = bedsNeeded(h, admittedLOS, dischargeLOS);
-                const available = state.beds[h];
-                results.push({ hour: h, available, occupancy: Math.round(occupancy), percentage: available === 0 ? 0 : Math.round((occupancy / available) * 100), deficit: Math.max(0, Math.round(occupancy - available)) });
-            }
-            updateMetrics(results); updateChart(results); updateHeatmap(results); updateResultsTable(results);
-        }
-        function updateMetrics(results) {
-            const maxDeficit = Math.max(...results.map(r => r.deficit));
-            const avgOccupancy = Math.round(results.reduce((s, r) => s + r.occupancy, 0) / 24);
-            const maxOccupancy = Math.max(...results.map(r => r.percentage));
-            document.getElementById('metrics').innerHTML = `<div class="metric-card"><div class="metric-label">Peak Bed Deficit</div><div class="metric-value">${maxDeficit}</div></div><div class="metric-card"><div class="metric-label">Average Occupancy</div><div class="metric-value">${avgOccupancy}</div></div><div class="metric-card"><div class="metric-label">Max Occupancy %</div><div class="metric-value">${maxOccupancy}%</div></div>`;
-        }
-        function updateChart(results) {
-            const ctx = document.getElementById('capacityChart').getContext('2d');
-            if (window.chart) window.chart.destroy();
-            window.chart = new Chart(ctx, { type: 'line', data: { labels: results.map(r => `${r.hour.toString().padStart(2, '0')}:00`), datasets: [{ label: 'Total Occupancy', data: results.map(r => r.occupancy), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 2.5, tension: 0.3, fill: true }, { label: 'Bed Capacity', data: results.map(r => r.available), borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.15)', borderWidth: 2.5, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f5f5f5' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,0.12)' } }, x: { ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,0.08)' } } } } });
-        }
-        function updateHeatmap(results) {
-            const heatmap = document.getElementById('heatmap');
-            const metric = document.getElementById('heatmapMetric').value;
-            const layout = document.getElementById('gridLayout').value;
-            const columns = layout === '3x8' ? 8 : layout === '4x6' ? 6 : layout === '6x4' ? 4 : 12;
-            heatmap.className = 'heatmap';
-            heatmap.style.display = 'grid';
-            heatmap.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-            heatmap.innerHTML = '';
-            results.forEach(r => {
-                let value, color;
-                if (metric === 'deficit') { value = r.deficit; color = value === 0 ? 'heat-low' : value <= 5 ? 'heat-med' : value <= 10 ? 'heat-high' : 'heat-critical'; }
-                else if (metric === 'occupancy') { value = r.occupancy; color = r.percentage <= 60 ? 'heat-low' : r.percentage <= 80 ? 'heat-med' : r.percentage <= 100 ? 'heat-high' : 'heat-critical'; }
-                else { value = r.percentage; color = value <= 60 ? 'heat-low' : value <= 80 ? 'heat-med' : value <= 100 ? 'heat-high' : 'heat-critical'; }
-                const cell = document.createElement('div');
-                cell.className = `heatmap-cell ${color}`;
-                cell.innerHTML = `<div>${r.hour.toString().padStart(2, '0')}:00</div><div>${value}</div>`;
-                heatmap.appendChild(cell);
-            });
-        }
-        function updateResultsTable(results) {
-            document.getElementById('resultsTable').innerHTML = results.map(r => `<tr><td>${r.hour.toString().padStart(2, '0')}:00</td><td>${r.available}</td><td>${r.occupancy}</td><td>${r.percentage}%</td><td>${r.deficit}</td></tr>`).join('');
-        }
-        function exportExcel() {
-            const admittedLOS = parseInt(document.getElementById('admittedLOS').value) || 0;
-            const dischargeLOS = parseInt(document.getElementById('dischargeLOS').value) || 0;
-            const results = [];
-            for (let h = 0; h < 24; h++) {
-                const occupancy = bedsNeeded(h, admittedLOS, dischargeLOS);
-                const available = state.beds[h];
-                results.push({ Hour: `${h.toString().padStart(2, '0')}:00`, 'Beds Available': available, Occupancy: Math.round(occupancy), 'Occupancy %': available ? Math.round(occupancy / available * 100) : 0, 'Bed Deficit': Math.max(0, Math.round(occupancy - available)), Arrivals: state.arrivals[h], Admits: state.admits[h], Discharges: state.discharges[h] });
-            }
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(results), 'Results');
-            XLSX.writeFile(wb, `ER-Bed-Tracker-Weekday-${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-        function exportCSV() {
-            const admittedLOS = parseInt(document.getElementById('admittedLOS').value) || 0;
-            const dischargeLOS = parseInt(document.getElementById('dischargeLOS').value) || 0;
-            const csv = ['Hour,Beds Available,Occupancy,Percentage,Deficit,Arrivals,Admits,Discharges'];
-            for (let h = 0; h < 24; h++) {
-                const occupancy = bedsNeeded(h, admittedLOS, dischargeLOS);
-                const available = state.beds[h];
-                csv.push(`${h.toString().padStart(2, '0')}:00,${available},${Math.round(occupancy)},${available ? Math.round(occupancy / available * 100) : 0},${Math.max(0, Math.round(occupancy - available))},${state.arrivals[h]},${state.admits[h]},${state.discharges[h]}`);
-            }
-            const a = document.createElement('a');
-            a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv.join('\n'))}`;
-            a.download = `ER-Bed-Tracker-Weekday-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        }
-        initializeTables();
-        calculate();
-    </script>
+    <div class="row">
+      <button class="btn primary" id="useMeans" type="button">Measured means, 498 / 284</button>
+      <button class="btn" id="usePublished" type="button">Published medians, 374 / 265</button>
+      <button class="btn" id="resetBeds" type="button">Reset beds available</button>
+      <button class="btn" id="exportBtn" type="button">Export CSV</button>
+    </div>
+  </div>
+  <div class="metrics" id="metrics"></div>
+  <div class="chart-box"><canvas id="chart"></canvas></div>
+  <div class="row">
+    <select id="heatMetric">
+      <option value="s50" selected>Short at 50th</option>
+      <option value="s75">Short at 75th</option>
+      <option value="pct">Occupancy %</option>
+    </select>
+    <select id="gridLayout">
+      <option value="6" selected>Grid 4 x 6</option>
+      <option value="4">Grid 6 x 4</option>
+      <option value="8">Grid 3 x 8</option>
+      <option value="12">Grid 2 x 12</option>
+    </select>
+  </div>
+  <div class="heat" id="heat"></div>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Hour</th>
+          <th>Beds available</th>
+          <th>LOS shift</th>
+          <th>50th occupied</th>
+          <th>75th occupied</th>
+          <th>Short at 50th</th>
+          <th>Short at 75th</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+<footer>© 2026 Alex Ho, MD, MBA. All rights reserved.</footer>
+<script>
+const P50 = [44.8,41.2,38.2,34.5,31.1,29.1,27.2,28.5,30.3,37.6,45.4,53.9,60.1,64.6,68.2,68.5,68.6,66.6,65.3,63.6,61.5,58.5,55.8,50.6];
+const P75 = [52.2,47.7,44.8,41.2,38.4,36.3,34.0,33.9,36.8,42.1,51.2,60.1,66.9,71.8,74.0,75.6,75.1,73.7,72.3,70.9,68.5,66.2,61.6,57.9];
+const ADMITS = [1.37,1.20,0.96,0.90,0.90,1.11,1.28,1.75,2.35,3.48,4.48,4.75,4.80,4.43,4.31,4.33,3.73,3.83,3.30,3.14,2.70,2.33,1.83,1.55];
+const DISCHARGES = [3.81,3.39,2.77,2.31,2.23,2.21,2.75,4.09,5.51,7.69,8.20,8.32,8.15,7.68,7.45,7.49,6.86,6.69,6.30,6.60,6.14,5.74,4.99,4.10];
+const DEFAULT_BEDS = [32,32,32,32,32,32,32,32,32,44,44,44,44,54,54,54,54,54,54,54,54,44,44,44];
+const beds = DEFAULT_BEDS.slice();
+let chart;
+function stayFraction(lagHours, losMinutes) {
+  if (losMinutes <= 0) return 0;
+  const lag = lagHours * 60;
+  let covered = 0;
+  for (let minute = 0; minute < 60; minute++) covered += Math.max(0, Math.min(minute + losMinutes, lag + 60) - Math.max(minute, lag));
+  return covered / 3600;
+}
+function rolled(admitLos, dcLos) {
+  const out = Array(24).fill(0);
+  for (let hour = 0; hour < 24; hour++) {
+    for (let arrived = 0; arrived < 24; arrived++) {
+      const lag = (hour - arrived + 24) % 24;
+      out[hour] += ADMITS[arrived] * stayFraction(lag, admitLos);
+      out[hour] += DISCHARGES[arrived] * stayFraction(lag, dcLos);
+    }
+  }
+  return out;
+}
+const baseline = rolled(498, 284);
+function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+function bedsUp(n) { return Math.ceil(n - 1e-9); }
+function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function heatClass(metric, row) {
+  if (metric === 'pct') {
+    const pct = row.available ? row.a50 / row.available * 100 : 0;
+    return pct <= 60 ? 'g' : pct <= 80 ? 'y' : pct <= 100 ? 'o' : 'r';
+  }
+  const short = bedsUp(metric === 's75' ? row.s75 : row.s50);
+  return short <= 0 ? 'g' : short <= 5 ? 'y' : short <= 10 ? 'o' : 'r';
+}
+function render() {
+  const shift = rolled(num('admitLos'), num('dcLos')).map((v, i) => v - baseline[i]);
+  const data = P50.map((p50, h) => {
+    const available = beds[h];
+    const a50 = p50 + shift[h];
+    const a75 = P75[h] + shift[h];
+    return { h, available, shift: shift[h], a50, a75, s50: a50 - available, s75: a75 - available };
+  });
+  const usual = data.reduce((a, r) => r.s50 > a.s50 ? r : a);
+  const weekly = data.reduce((a, r) => r.s75 > a.s75 ? r : a);
+  document.getElementById('metrics').innerHTML = [
+    ['Usual day 50th percentile', fmt(usual.s50) + ' short at ' + String(usual.h).padStart(2,'0') + ':00'],
+    ['Busier day 75th percentile', fmt(weekly.s75) + ' short at ' + String(weekly.h).padStart(2,'0') + ':00'],
+    ['Admit / discharge LOS', num('admitLos') + ' / ' + num('dcLos')]
+  ].map(([k,v]) => `<div class="metric"><span>${k}</span><b>${v}</b></div>`).join('');
+  document.getElementById('body').innerHTML = data.map(r => `<tr>
+    <td>${String(r.h).padStart(2,'0')}:00</td>
+    <td><input class="hour" data-h="${r.h}" type="number" min="0" step="1" value="${r.available}"></td>
+    <td class="${r.shift > 0.05 ? 'pos' : r.shift < -0.05 ? 'neg' : ''}">${fmt(r.shift)}</td>
+    <td>${fmt(r.a50)}</td>
+    <td>${fmt(r.a75)}</td>
+    <td class="${r.s50 > 0 ? 'pos' : 'neg'}">${fmt(r.s50)}</td>
+    <td class="${r.s75 > 0 ? 'pos' : 'neg'}">${fmt(r.s75)}</td>
+  </tr>`).join('');
+  document.querySelectorAll('input.hour').forEach(el => el.addEventListener('change', e => {
+    beds[e.target.dataset.h] = parseFloat(e.target.value) || 0;
+    render();
+  }));
+  const metric = document.getElementById('heatMetric').value;
+  const cols = document.getElementById('gridLayout').value;
+  const heat = document.getElementById('heat');
+  heat.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  heat.innerHTML = data.map(r => {
+    const value = metric === 'pct' ? Math.round(r.available ? r.a50 / r.available * 100 : 0) + '%' : String(bedsUp(metric === 's75' ? r.s75 : r.s50));
+    return `<div class="cell ${heatClass(metric, r)}"><div>${String(r.h).padStart(2,'0')}:00</div><div>${value}</div></div>`;
+  }).join('');
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: data.map(r => String(r.h).padStart(2,'0') + ':00'),
+      datasets: [
+        { label: 'Beds available', data: data.map(r => r.available), borderColor: '#06b6d4', borderWidth: 2.5, tension: 0.15, fill: false },
+        { label: '50th occupied', data: data.map(r => Math.round(r.a50 * 10) / 10), borderColor: '#86efac', borderWidth: 2.5, tension: 0.25, fill: false },
+        { label: '75th occupied', data: data.map(r => Math.round(r.a75 * 10) / 10), borderColor: '#eab308', borderWidth: 2, tension: 0.25, fill: false }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f5f5f5' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,.1)' } }, x: { ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,.05)' } } } }
+  });
+  window._rows = data;
+}
+document.getElementById('admitLos').addEventListener('input', render);
+document.getElementById('dcLos').addEventListener('input', render);
+document.getElementById('heatMetric').addEventListener('change', render);
+document.getElementById('gridLayout').addEventListener('change', render);
+document.getElementById('useMeans').onclick = () => { admitLos.value = 498; dcLos.value = 284; render(); };
+document.getElementById('usePublished').onclick = () => { admitLos.value = 374; dcLos.value = 265; render(); };
+document.getElementById('resetBeds').onclick = () => { DEFAULT_BEDS.forEach((n, i) => beds[i] = n); render(); };
+document.getElementById('exportBtn').onclick = () => {
+  const header = 'Hour,Beds available,LOS shift,50th occupied,75th occupied,Short at 50th,Short at 75th';
+  const lines = window._rows.map(r => [String(r.h).padStart(2,'0') + ':00', r.available, fmt(r.shift), fmt(r.a50), fmt(r.a75), fmt(r.s50), fmt(r.s75)].join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([header, ...lines].join('\n'));
+  a.download = 'ER-Bed-Tracker-Weekday.csv';
+  a.click();
+};
+render();
+</script>
 </body>
 </html>
