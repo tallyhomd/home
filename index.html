@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Bed Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root { --bg:#1f2121; --surface:#262828; --text:#f5f5f5; --muted:#aeb8ba; --line:rgba(94,82,64,.35); --teal:#21808d; }
+* { box-sizing:border-box; }
+body { margin:0; padding:20px 20px 48px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.wrap { max-width:1100px; margin:0 auto; }
+h1 { font-size:28px; margin:0 0 16px; font-weight:600; }
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+input[type="number"], select { padding:8px; border-radius:6px; border:1px solid var(--line); background:var(--bg); color:var(--text); }
+input[type="number"] { width:100%; }
+.row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+.btn { border:1px solid var(--line); background:#1b1d1d; color:var(--text); border-radius:6px; padding:8px 12px; cursor:pointer; }
+.btn.primary { background:var(--teal); border-color:var(--teal); color:#fff; }
+.metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:16px; }
+.metric { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; }
+.metric b { display:block; font-size:22px; color:var(--teal); margin-top:4px; }
+.metric span { color:var(--muted); font-size:12px; }
+.chart-box { height:360px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:16px; }
+.heat { display:grid; gap:6px; margin:8px 0 16px; }
+.cell { min-height:74px; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+.g { background:#22c55e; } .y { background:#eab308; color:#1f2121; } .o { background:#f97316; } .r { background:#ef4444; }
+.scroll { overflow:auto; max-height:640px; border-radius:8px; }
+table { width:100%; border-collapse:collapse; background:var(--surface); }
+th, td { border:1px solid var(--line); padding:7px 8px; text-align:right; font-size:13px; }
+th { background:#202424; position:sticky; top:0; }
+td:first-child, th:first-child { text-align:left; }
+input.hour { width:70px; padding:4px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:4px; }
+.neg { color:#86efac; } .pos { color:#fca5a5; }
+footer { position:fixed; left:0; right:0; bottom:0; padding:8px 16px; text-align:center; font-size:12px; color:var(--muted); background:var(--bg); border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ER Bed Tracker</h1>
+  <div class="panel">
+    <div class="grid">
+      <div><label for="admitLos">Admit LOS (minutes)</label><input id="admitLos" type="number" value="498" min="0"></div>
+      <div><label for="dcLos">Discharge LOS (minutes)</label><input id="dcLos" type="number" value="284" min="0"></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="useMean" type="button">Mean</button>
+      <button class="btn" id="useMedian" type="button">Median</button>
+      <button class="btn" id="resetBeds" type="button">Reset beds available</button>
+      <button class="btn" id="exportBtn" type="button">Export CSV</button>
+    </div>
+  </div>
+  <div class="metrics" id="metrics"></div>
+  <div class="chart-box"><canvas id="chart"></canvas></div>
+  <div class="row">
+    <select id="heatMetric">
+      <option value="s50" selected>Short at 50th</option>
+      <option value="s75">Short at 75th</option>
+      <option value="pct">Occupancy %</option>
+    </select>
+    <select id="gridLayout">
+      <option value="6" selected>Grid 4 x 6</option>
+      <option value="4">Grid 6 x 4</option>
+      <option value="8">Grid 3 x 8</option>
+      <option value="12">Grid 2 x 12</option>
+    </select>
+  </div>
+  <div class="heat" id="heat"></div>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Hour</th>
+          <th>Beds available</th>
+          <th>LOS shift</th>
+          <th>50th occupied</th>
+          <th>75th occupied</th>
+          <th>Short at 50th</th>
+          <th>Short at 75th</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+<footer>© 2026 Alex Ho, MD, MBA. All rights reserved.</footer>
+<script>
+const P50 = [44.8,41.2,38.2,34.5,31.1,29.1,27.2,28.5,30.3,37.6,45.4,53.9,60.1,64.6,68.2,68.5,68.6,66.6,65.3,63.6,61.5,58.5,55.8,50.6];
+const P75 = [52.2,47.7,44.8,41.2,38.4,36.3,34.0,33.9,36.8,42.1,51.2,60.1,66.9,71.8,74.0,75.6,75.1,73.7,72.3,70.9,68.5,66.2,61.6,57.9];
+const ADMITS = [1.37,1.20,0.96,0.90,0.90,1.11,1.28,1.75,2.35,3.48,4.48,4.75,4.80,4.43,4.31,4.33,3.73,3.83,3.30,3.14,2.70,2.33,1.83,1.55];
+const DISCHARGES = [3.81,3.39,2.77,2.31,2.23,2.21,2.75,4.09,5.51,7.69,8.20,8.32,8.15,7.68,7.45,7.49,6.86,6.69,6.30,6.60,6.14,5.74,4.99,4.10];
+const DEFAULT_BEDS = [32,32,32,32,32,32,32,32,32,44,44,44,44,54,54,54,54,54,54,54,54,44,44,44];
+const beds = DEFAULT_BEDS.slice();
+let chart;
+function stayFraction(lagHours, losMinutes) {
+  if (losMinutes <= 0) return 0;
+  const lag = lagHours * 60;
+  let covered = 0;
+  for (let minute = 0; minute < 60; minute++) covered += Math.max(0, Math.min(minute + losMinutes, lag + 60) - Math.max(minute, lag));
+  return covered / 3600;
+}
+function rolled(admitLos, dcLos) {
+  const out = Array(24).fill(0);
+  for (let hour = 0; hour < 24; hour++) {
+    for (let arrived = 0; arrived < 24; arrived++) {
+      const lag = (hour - arrived + 24) % 24;
+      out[hour] += ADMITS[arrived] * stayFraction(lag, admitLos);
+      out[hour] += DISCHARGES[arrived] * stayFraction(lag, dcLos);
+    }
+  }
+  return out;
+}
+const baseline = rolled(498, 284);
+function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+function bedsUp(n) { return Math.ceil(n - 1e-9); }
+function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function markLos(which) {
+  document.getElementById('useMean').classList.toggle('primary', which === 'mean');
+  document.getElementById('useMedian').classList.toggle('primary', which === 'median');
+}
+function setPreset(which) {
+  if (which === 'mean') { admitLos.value = 498; dcLos.value = 284; }
+  else { admitLos.value = 374; dcLos.value = 265; }
+  markLos(which);
+  render();
+}
+function heatClass(metric, row) {
+  if (metric === 'pct') {
+    const pct = row.available ? row.a50 / row.available * 100 : 0;
+    return pct <= 60 ? 'g' : pct <= 80 ? 'y' : pct <= 100 ? 'o' : 'r';
+  }
+  const short = bedsUp(metric === 's75' ? row.s75 : row.s50);
+  return short <= 0 ? 'g' : short <= 5 ? 'y' : short <= 10 ? 'o' : 'r';
+}
+function render() {
+  const shift = rolled(num('admitLos'), num('dcLos')).map((v, i) => v - baseline[i]);
+  const data = P50.map((p50, h) => {
+    const available = beds[h];
+    const a50 = p50 + shift[h];
+    const a75 = P75[h] + shift[h];
+    return { h, available, shift: shift[h], a50, a75, s50: a50 - available, s75: a75 - available };
+  });
+  const usual = data.reduce((a, r) => r.s50 > a.s50 ? r : a);
+  const weekly = data.reduce((a, r) => r.s75 > a.s75 ? r : a);
+  document.getElementById('metrics').innerHTML = [
+    ['Usual day 50th percentile', fmt(usual.s50) + ' short at ' + String(usual.h).padStart(2,'0') + ':00'],
+    ['Busier day 75th percentile', fmt(weekly.s75) + ' short at ' + String(weekly.h).padStart(2,'0') + ':00'],
+    ['Admit / discharge LOS', num('admitLos') + ' / ' + num('dcLos')]
+  ].map(([k,v]) => `<div class="metric"><span>${k}</span><b>${v}</b></div>`).join('');
+  document.getElementById('body').innerHTML = data.map(r => `<tr>
+    <td>${String(r.h).padStart(2,'0')}:00</td>
+    <td><input class="hour" data-h="${r.h}" type="number" min="0" step="1" value="${r.available}"></td>
+    <td class="${r.shift > 0.05 ? 'pos' : r.shift < -0.05 ? 'neg' : ''}">${fmt(r.shift)}</td>
+    <td>${fmt(r.a50)}</td>
+    <td>${fmt(r.a75)}</td>
+    <td class="${r.s50 > 0 ? 'pos' : 'neg'}">${fmt(r.s50)}</td>
+    <td class="${r.s75 > 0 ? 'pos' : 'neg'}">${fmt(r.s75)}</td>
+  </tr>`).join('');
+  document.querySelectorAll('input.hour').forEach(el => el.addEventListener('change', e => {
+    beds[e.target.dataset.h] = parseFloat(e.target.value) || 0;
+    render();
+  }));
+  const metric = document.getElementById('heatMetric').value;
+  const cols = document.getElementById('gridLayout').value;
+  const heat = document.getElementById('heat');
+  heat.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  heat.innerHTML = data.map(r => {
+    const value = metric === 'pct' ? Math.round(r.available ? r.a50 / r.available * 100 : 0) + '%' : String(bedsUp(metric === 's75' ? r.s75 : r.s50));
+    return `<div class="cell ${heatClass(metric, r)}"><div>${String(r.h).padStart(2,'0')}:00</div><div>${value}</div></div>`;
+  }).join('');
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: data.map(r => String(r.h).padStart(2,'0') + ':00'),
+      datasets: [
+        { label: 'Beds available', data: data.map(r => r.available), borderColor: '#06b6d4', borderWidth: 2.5, tension: 0.15, fill: false },
+        { label: '50th occupied', data: data.map(r => Math.round(r.a50 * 10) / 10), borderColor: '#86efac', borderWidth: 2.5, tension: 0.25, fill: false },
+        { label: '75th occupied', data: data.map(r => Math.round(r.a75 * 10) / 10), borderColor: '#eab308', borderWidth: 2, tension: 0.25, fill: false }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f5f5f5' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,.1)' } }, x: { ticks: { color: '#f5f5f5' }, grid: { color: 'rgba(255,255,255,.05)' } } } }
+  });
+  window._rows = data;
+}
+document.getElementById('admitLos').addEventListener('input', () => { markLos(''); render(); });
+document.getElementById('dcLos').addEventListener('input', () => { markLos(''); render(); });
+document.getElementById('heatMetric').addEventListener('change', render);
+document.getElementById('gridLayout').addEventListener('change', render);
+document.getElementById('useMean').onclick = () => setPreset('mean');
+document.getElementById('useMedian').onclick = () => setPreset('median');
+document.getElementById('resetBeds').onclick = () => { DEFAULT_BEDS.forEach((n, i) => beds[i] = n); render(); };
+document.getElementById('exportBtn').onclick = () => {
+  const header = 'Hour,Beds available,LOS shift,50th occupied,75th occupied,Short at 50th,Short at 75th';
+  const lines = window._rows.map(r => [String(r.h).padStart(2,'0') + ':00', r.available, fmt(r.shift), fmt(r.a50), fmt(r.a75), fmt(r.s50), fmt(r.s75)].join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([header, ...lines].join('\\n'));
+  a.download = 'ER-Bed-Tracker-Weekday.csv';
+  a.click();
+};
+render();
+</script>
+</body>
+</html>
