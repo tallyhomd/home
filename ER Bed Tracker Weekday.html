@@ -46,8 +46,8 @@ footer { position:fixed; left:0; right:0; bottom:0; padding:8px 16px; text-align
       <div><label for="dcLos">Discharge LOS (minutes)</label><input id="dcLos" type="number" value="284" min="0"></div>
     </div>
     <div class="row">
-      <button class="btn primary" id="useMeans" type="button">Measured means, 498 / 284</button>
-      <button class="btn" id="usePublished" type="button">Published medians, 374 / 265</button>
+      <button class="btn primary" id="useMean" type="button">Mean</button>
+      <button class="btn" id="useMedian" type="button">Median</button>
       <button class="btn" id="resetBeds" type="button">Reset beds available</button>
       <button class="btn" id="exportBtn" type="button">Export CSV</button>
     </div>
@@ -116,6 +116,16 @@ const baseline = rolled(498, 284);
 function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1); }
 function bedsUp(n) { return Math.ceil(n - 1e-9); }
 function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function markLos(which) {
+  document.getElementById('useMean').classList.toggle('primary', which === 'mean');
+  document.getElementById('useMedian').classList.toggle('primary', which === 'median');
+}
+function setPreset(which) {
+  if (which === 'mean') { admitLos.value = 498; dcLos.value = 284; }
+  else { admitLos.value = 374; dcLos.value = 265; }
+  markLos(which);
+  render();
+}
 function heatClass(metric, row) {
   if (metric === 'pct') {
     const pct = row.available ? row.a50 / row.available * 100 : 0;
@@ -175,12 +185,12 @@ function render() {
   });
   window._rows = data;
 }
-document.getElementById('admitLos').addEventListener('input', render);
-document.getElementById('dcLos').addEventListener('input', render);
+document.getElementById('admitLos').addEventListener('input', () => { markLos(''); render(); });
+document.getElementById('dcLos').addEventListener('input', () => { markLos(''); render(); });
 document.getElementById('heatMetric').addEventListener('change', render);
 document.getElementById('gridLayout').addEventListener('change', render);
-document.getElementById('useMeans').onclick = () => { admitLos.value = 498; dcLos.value = 284; render(); };
-document.getElementById('usePublished').onclick = () => { admitLos.value = 374; dcLos.value = 265; render(); };
+document.getElementById('useMean').onclick = () => setPreset('mean');
+document.getElementById('useMedian').onclick = () => setPreset('median');
 document.getElementById('resetBeds').onclick = () => { DEFAULT_BEDS.forEach((n, i) => beds[i] = n); render(); };
 document.getElementById('exportBtn').onclick = () => {
   const header = 'Hour,Beds available,LOS shift,50th occupied,75th occupied,Short at 50th,Short at 75th';
